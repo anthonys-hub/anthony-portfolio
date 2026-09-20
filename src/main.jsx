@@ -341,6 +341,13 @@ function AppRun() {
           <p className='text-zinc-500 text-sm font-["Courier_Prime"]'>{progress >= 100 ? 'Warming up the scene...' : 'Starting engine...'} {progress}%</p>
         </div>
       )}
+      {!isMobile && assetsLoaded >= totalAssets && !panelOpen && cameraPoint !== 'transitioning' && (
+        <div className='fixed bottom-8 inset-x-0 flex justify-center pointer-events-none z-40'>
+          <p className='animate-bounce text-white/80 text-sm font-["Courier_Prime"] bg-black/50 px-4 py-2 rounded-full'>
+            {cameraPoint === 'orbit' ? 'Scroll up to enter the car ↑' : 'Scroll down to exit ↓'}
+          </p>
+        </div>
+      )}
       {(isMobile || (cameraPoint === 'driverSeat' && panelOpen)) && <CarPlayUI ref={carPlayRef} setPanelOpen={closePanel} isMobile={isMobile} />}
     </>
   )

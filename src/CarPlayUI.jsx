@@ -1,4 +1,4 @@
-import CarPlayBG from './assets/CarPlayBG.png';
+import CarPlayBG from './assets/CarPlayBG.jpg';
 import { FaSignal } from "react-icons/fa";
 import { FaBatteryThreeQuarters } from "react-icons/fa";
 import { BsGithub } from "react-icons/bs";
