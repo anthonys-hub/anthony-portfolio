@@ -235,7 +235,6 @@ function AppRun() {
           child.add(rimMesh)
 
           rimMeshRef.current = rimMesh
-          console.log('rim built:', rimMeshRef.current)
         }
       })
       setAssetsLoaded(prev => prev + 1)
@@ -257,11 +256,7 @@ function AppRun() {
       const action = mixer.clipAction(clip)
       action.play()
 
-      gltf.scene.traverse((child) => {
-        if (child.isMesh) {
-          console.log(child.name, 'vertexColors:', child.material.vertexColors)
-        }
-      })
+
       setAssetsLoaded(prev => prev + 1)
 
     }, (xhr) => {
@@ -303,8 +298,7 @@ function AppRun() {
       frameCount++
       const now = performance.now()
       if (now - lastTime >= 1000) {
-        console.log('Draw calls:', renderer.info.render.calls)
-        console.log('Triangles:', renderer.info.render.triangles)
+
         frameCount = 0
         lastTime = now
       }
