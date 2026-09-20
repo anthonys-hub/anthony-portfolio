@@ -332,7 +332,7 @@ function AppRun() {
           <div className='w-64 h-1 bg-zinc-800 rounded-full overflow-hidden mt-4'>
             <div className='h-full bg-white rounded-full transition-all duration-300' style={{ width: `${progress}%` }} />
           </div>
-          <p className='text-zinc-500 text-sm font-["Courier_Prime"]'>{progress >= 100 ? 'Warming up the scene...' : 'Starting engine...'} {progress}%</p>
+          <p className='text-zinc-500 text-sm font-["Courier_Prime"]'>{progress >= 100 ? 'Entering the city' : 'Starting engine...'} {progress}%</p>
         </div>
       )}
       {!isMobile && assetsLoaded >= totalAssets && !panelOpen && cameraPoint !== 'transitioning' && (
