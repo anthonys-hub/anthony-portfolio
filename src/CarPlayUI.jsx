@@ -10,7 +10,6 @@ import { IoIosCall } from "react-icons/io";
 import { FaFileLines } from "react-icons/fa6";
 import { useEffect } from 'react';
 import { useState } from 'react';
-import Selfie from './assets/Selfie.jpeg';
 import Sage from './assets/sc2.png';
 import Dossier from './assets/dossier.jpeg'
 import GMC from './assets/input.png'
@@ -18,6 +17,7 @@ import Spotify from './assets/dashboard.png'
 import Swal from 'sweetalert2'
 import Resume from './assets/Anthony Resume 2026.pdf'
 import { FaSpotify } from "react-icons/fa";
+import SelfiePic from './assets/SelfiePic.jpeg';
 
 
 
@@ -250,27 +250,26 @@ function CarPlayUI({ ref, setPanelOpen, isMobile }) {
 
                                 {activeApp === 'About Me' && (
                                     <div className={isMobile ? 'flex flex-col items-center gap-4' : 'flex flex-row items-center gap-5 h-full'}>
-                                        <img src={Selfie} className={isMobile ? 'w-40 h-40 rounded-full object-cover' : 'w-100 h-150 '}></img>
+                                        <img src={SelfiePic} className={isMobile ? 'w-40 h-40 rounded-full object-cover' : 'w-80 h-full object-cover rounded-l-2xl'}></img>
 
 
-                                        <div className={isMobile ? 'flex flex-col w-full items-center text-center' : 'flex flex-col h-full w-full mt-15  items-center '}>
-                                            <h1 className={`${isMobile ? 'text-4xl' : 'text-7xl'} font-["Instrument_Serif"] font-bold`}>Hi, I'm <span className='text-[#4d7657] italic'>Anthony </span>👋</h1>
-                                            <p className='text-3xl font-["Instrument_Serif"] italic font-semibold'>Connecticut, US</p>
+                                        <div className={isMobile ? 'flex flex-col w-full items-center text-center' : 'flex flex-col h-full w-full mt-15 px-8 items-center '}>
+                                            <h1 className={`${isMobile ? 'text-4xl' : 'text-5xl'} font-["Instrument_Serif"] font-bold`}>Hi, I'm <span className='text-[#4d7657] italic'>Anthony </span>👋</h1>                                            <p className='text-3xl font-["Instrument_Serif"] italic font-semibold'>Connecticut, US</p>
                                             <div />
 
                                             <div className={isMobile ? 'flex items-center mt-4' : 'flex items-center h-full'}>
-                                                <p className={`${isMobile ? 'w-full text-sm leading-relaxed' : 'w-135 leading-loose'} text-[#777] font-["Courier_Prime"] monospace`}>I am a Software Engineer located in Connecticut, US. I am a final year Computer Information Systems student at Post University, graduating May 2027. Alongside working towards my degree, I am interning at Health Genie as a Software Engineer and building side projects, with a focus of React, Javascript, Python, PostgreSQL. Outside of work, I enjoy going to the gym, playing games, listening to music, and learning technical skills and new technologies. I am currently exploring opportunities where I can improve my skills and gain more experience in software development. Always happy to connect, feel free to reach out!</p>
+                                                <p className={`${isMobile ? 'w-full text-sm leading-relaxed' : 'w-full leading-loose'} text-[#777] font-["Courier_Prime"] monospace`}>I am a Software Engineer located in Connecticut, US. I am a final year Computer Information Systems student at Post University, graduating May 2027. Alongside working towards my degree, I am interning at Health Genie as a Software Engineer and building side projects, with a focus of React, Javascript, Python, PostgreSQL. Outside of work, I enjoy going to the gym, playing games, listening to music, and learning technical skills and new technologies. I am currently exploring opportunities where I can improve my skills and gain more experience in software development. Always happy to connect, feel free to reach out!</p>
                                             </div>
                                         </div>
                                     </div>
 
                                 )}
                                 {activeApp === 'Experience' && (
-                                    <div className='flex flex-col gap-5'>
+                                    <div className='flex flex-col gap-2'>
                                         <div>
                                             <h1 className='text-black text-2xl font-["Courier_Prime"]'>Education</h1>
                                             <div className="border-b-2 border-b-gray-800"></div>
-                                            <div className={`${rowCls} mt-2`}>
+                                            <div className={`${rowCls}`}>
                                                 <p className='font-bold text-[20px] '>Post University</p>
                                                 <p className='text-[20px]'>  Waterbury, CT</p>
                                             </div>
@@ -278,7 +277,7 @@ function CarPlayUI({ ref, setPanelOpen, isMobile }) {
                                                 <p className='italic'>Bachelor of Science, Computer Information Systems</p>
                                                 <p>Aug. 2023 - May 2027</p>
                                             </div>
-                                            <div className='mt-2'>
+                                            <div>
                                                 <p className='text-[20px] font-bold'>Colt Steele's Full Stack Web Development Bootcamp </p>
                                                 <div className={rowCls}>
                                                     <p className='italic'>Udemy</p>
@@ -290,7 +289,7 @@ function CarPlayUI({ ref, setPanelOpen, isMobile }) {
                                         <div>
                                             <h1 className='text-black text-2xl font-["Courier_Prime"]' >Work</h1>
                                             <div className="border-b-2 border-b-gray-800"></div>
-                                            <div className={`${rowCls} mt-2`}>
+                                            <div className={`${rowCls} `}>
                                                 <p className='font-bold italic text-[20px]'>Software Engineer Intern</p>
                                                 <p className='text-[20px]'>Remote</p>
                                             </div>
@@ -304,9 +303,15 @@ function CarPlayUI({ ref, setPanelOpen, isMobile }) {
                                                 <li>Developed a Python-based API to power the platform’s data layer, connecting the frontend to the underlying nutrition/food-access data</li>
                                                 <li>Evaluated web hosting options to determine the right deployment path for a nonprofit-facing platform, balancing cost and    reliability</li>
                                             </ul>
-
-
-
+                                        </div>
+                                        <div>
+                                            <h1 className='text-black text-2xl font-["Courier_Prime"]'>Skills</h1>
+                                            <div className="border-b-2 border-b-gray-800"></div>
+                                            <p><span className='font-bold'>Languages:</span> Python, JavaScript, SQL, HTML, CSS
+                                                <br /><span className='font-bold'>Frameworks:</span> React, Node.js, Express.js, TailwindCSS
+                                                <br /><span className='font-bold'> Databases:</span> PostgreSQL
+                                                <br /><span className='font-bold'> Cloud/DevOps:</span> AWS (EC2, S3, CloudFront, Security Groups), PM2, Linux CLI, Git
+                                                <br /> <span className='font-bold'>Tools:</span> VS Code, PythonAnywhere, Postman, Vite, Recharts, GitHub</p>
                                         </div>
 
                                     </div>
