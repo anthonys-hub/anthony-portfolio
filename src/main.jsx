@@ -15,6 +15,9 @@ import CarPlayUI from './CarPlayUI.jsx'
 
 function AppRun() {
 
+  const [progress, setProgress] = useState(0)
+  const bytesRef = useRef({ street: { loaded: 0, total: 0 }, dog: { loaded: 0, total: 0 } })
+
   const [cameraPoint, setCameraPoint] = useState('orbit')
   const cameraStateRef = useRef('orbit')
   const animationFrameId = useRef(null)
@@ -162,6 +165,12 @@ function AppRun() {
     const loader = new GLTFLoader()
     const rgbeLoader = new RGBELoader()
 
+    const updateProgress = () => {
+      const { street, dog } = bytesRef.current
+      const total = street.total + dog.total
+      if (total > 0) setProgress(Math.round(((street.loaded + dog.loaded) / total) * 100))
+    }
+
     rgbeLoader.load('/cobblestone_street_night_1k.hdr', (texture) => {
       scene.environment = pmremGenerator.fromEquirectangular(texture).texture
     })
@@ -231,6 +240,11 @@ function AppRun() {
       })
       setAssetsLoaded(prev => prev + 1)
 
+    }, (xhr) => {
+      if (xhr.lengthComputable) {
+        bytesRef.current.street = { loaded: xhr.loaded, total: xhr.total }
+        updateProgress()
+      }
     })
 
     let mixer = null
@@ -250,6 +264,11 @@ function AppRun() {
       })
       setAssetsLoaded(prev => prev + 1)
 
+    }, (xhr) => {
+      if (xhr.lengthComputable) {
+        bytesRef.current.dog = { loaded: xhr.loaded, total: xhr.total }
+        updateProgress()
+      }
     })
 
     let lastTime = performance.now()
@@ -313,8 +332,13 @@ function AppRun() {
   return (
     <>
       {!isMobile && assetsLoaded < totalAssets && (
-        <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-          <p className="text-white text-2xl">Loading...</p>
+        <div className="fixed inset-0 bg-black flex flex-col items-center justify-center gap-5 z-50">
+          <h1 className='text-white text-5xl italic font-["Instrument_Serif"]'>Anthony Colella</h1>
+          <p className='text-zinc-400 font-["Courier_Prime"]'>Software Engineer</p>
+          <div className='w-64 h-1 bg-zinc-800 rounded-full overflow-hidden mt-4'>
+            <div className='h-full bg-white rounded-full transition-all duration-300' style={{ width: `${progress}%` }} />
+          </div>
+          <p className='text-zinc-500 text-sm font-["Courier_Prime"]'>{progress >= 100 ? 'Warming up the scene...' : 'Starting engine...'} {progress}%</p>
         </div>
       )}
       {(isMobile || (cameraPoint === 'driverSeat' && panelOpen)) && <CarPlayUI ref={carPlayRef} setPanelOpen={closePanel} isMobile={isMobile} />}
