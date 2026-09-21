@@ -15,7 +15,7 @@ import Dossier from './assets/dossier.jpeg'
 import GMC from './assets/input.png'
 import Spotify from './assets/dashboard.png'
 import Swal from 'sweetalert2'
-import Resume from './assets/Anthony Resume 2026.pdf'
+import Resume from './assets/Anthony_SWE_Resume.pdf'
 import { FaSpotify } from "react-icons/fa";
 import SelfiePic from './assets/SelfiePic.jpeg';
 
