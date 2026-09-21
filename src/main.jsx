@@ -12,6 +12,7 @@ import { useRef } from 'react'
 import './index.css'
 import App from './App.jsx'
 import CarPlayUI from './CarPlayUI.jsx'
+import { FaVolumeUp, FaVolumeMute } from 'react-icons/fa'
 
 function AppRun() {
 
@@ -26,7 +27,31 @@ function AppRun() {
   const screenCenterRef = useRef(null)
   const panelOpenRef = useRef(false)
   const rimMeshRef = useRef(null)
+  const dogRef = useRef(null)
   const [isMobile] = useState(() => window.matchMedia('(pointer: coarse)').matches)
+
+
+  const [soundOn, setSoundOn] = useState(false)
+  const soundOnRef = useRef(false)
+  const ambienceRef = useRef(null)
+
+  const toggleSound = () => {
+    if (!ambienceRef.current) {
+      ambienceRef.current = new Audio('/ambience.mp3')
+      ambienceRef.current.loop = true
+      ambienceRef.current.volume = 0.15
+    }
+    if (soundOn) {
+      ambienceRef.current.pause()
+      soundOnRef.current = false
+      setSoundOn(false)
+    } else {
+      ambienceRef.current.play().then(() => {
+        soundOnRef.current = true
+        setSoundOn(true)
+      }).catch((e) => console.log(e))
+    }
+  }
 
   const [assetsLoaded, setAssetsLoaded] = useState(0)
   const totalAssets = 2
@@ -71,18 +96,29 @@ function AppRun() {
     const mouseClick = new THREE.Vector2()
 
     const handleScreenClick = (event) => {
-      if (cameraStateRef.current !== 'driverSeat') return
+      if (event.target !== renderer.domElement) return
+      if (cameraStateRef.current === 'transitioning') return
 
       mouseClick.x = (event.clientX / window.innerWidth) * 2 - 1
       mouseClick.y = -(event.clientY / window.innerHeight) * 2 + 1
 
       raycaster.setFromCamera(mouseClick, camera)
 
-      if (screenMeshRef.current) {
-        const intersects = raycaster.intersectObject(screenMeshRef.current, true)
-        if (intersects.length > 0) {
+      if (cameraStateRef.current === 'driverSeat' && screenMeshRef.current) {
+        const screenHits = raycaster.intersectObject(screenMeshRef.current, true)
+        if (screenHits.length > 0) {
           setPanelOpen(true)
           panelOpenRef.current = true
+          return
+        }
+      }
+
+      if (dogRef.current && soundOnRef.current) {
+        const dogHits = raycaster.intersectObject(dogRef.current, true)
+        if (dogHits.length > 0) {
+          const bark = new Audio('/bark.mp3')
+          bark.volume = 0.3
+          bark.play()
         }
       }
     }
@@ -93,6 +129,8 @@ function AppRun() {
     const lookRange = Math.PI / 2
     let mouseX = 0
     let mouseY = 0
+    let lastHoverCheck = 0
+    const dogBox = new THREE.Box3()
 
     const centerDir = new THREE.Vector3(17.026 - 34.856, 2.941 - 6.701, -8.147 - -6.865).normalize()
 
@@ -100,15 +138,28 @@ function AppRun() {
       mouseX = (event.clientX / window.innerWidth) * 2 - 1
       mouseY = (event.clientY / window.innerHeight) * 2 - 1
 
-      if (cameraStateRef.current === 'driverSeat' && !panelOpenRef.current && screenMeshRef.current) {
-        const hoverMouse = new THREE.Vector2(
-          (event.clientX / window.innerWidth) * 2 - 1,
-          -(event.clientY / window.innerHeight) * 2 + 1
-        )
-        raycaster.setFromCamera(hoverMouse, camera)
-        const intersects = raycaster.intersectObject(screenMeshRef.current, true)
-        document.body.style.cursor = intersects.length > 0 ? 'pointer' : 'default'
+      const now = performance.now()
+      if (now - lastHoverCheck < 100) return
+      lastHoverCheck = now
+
+      if (event.buttons !== 0) return
+      if (cameraStateRef.current === 'transitioning' || panelOpenRef.current) return
+      if (event.target !== renderer.domElement) return
+
+      raycaster.setFromCamera(new THREE.Vector2(mouseX, -mouseY), camera)
+
+      let overClickable = false
+
+      if (cameraStateRef.current === 'driverSeat' && screenMeshRef.current) {
+        overClickable = raycaster.intersectObject(screenMeshRef.current, true).length > 0
       }
+
+      if (!overClickable && dogRef.current) {
+        dogBox.setFromObject(dogRef.current)
+        overClickable = raycaster.ray.intersectsBox(dogBox)
+      }
+
+      document.body.style.cursor = overClickable ? 'pointer' : 'default'
     }
 
     window.addEventListener('mousemove', handleMouseMove)
@@ -252,6 +303,7 @@ function AppRun() {
 
     loader.load('/DracoOptimized.glb', (gltf) => {
       scene.add(gltf.scene)
+      dogRef.current = gltf.scene
 
       mixer = new THREE.AnimationMixer(gltf.scene)
       const clip = gltf.animations[0]
@@ -345,6 +397,15 @@ function AppRun() {
         </div>
       )}
       {(isMobile || (cameraPoint === 'driverSeat' && panelOpen)) && <CarPlayUI ref={carPlayRef} setPanelOpen={closePanel} isMobile={isMobile} />}
+      {!isMobile && assetsLoaded >= totalAssets && (
+        <button
+          onClick={toggleSound}
+          aria-label={soundOn ? 'Mute ambience' : 'Unmute ambience'}
+          className='fixed bottom-8 right-8 z-40 text-white/80 hover:text-white bg-black/50 p-3 rounded-full cursor-pointer'
+        >
+          {soundOn ? <FaVolumeUp /> : <FaVolumeMute />}
+        </button>
+      )}
     </>
   )
 
