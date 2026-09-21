@@ -329,7 +329,7 @@ function CarPlayUI({ ref, setPanelOpen, isMobile }) {
                                                 <div>
                                                     <img className={imgCls} src={Sage} alt="" />
                                                 </div>
-                                                <div onClick={() => openSage('https://sage-emr.vercel.app/login')} className='absolute inset-0 bg-green-800 opacity-0 hover:opacity-100 hover:scale-105 rounded-xl transition-all duration-300'>
+                                                <div onClick={() => openSage('https://sage-emr.vercel.app/')} className='absolute inset-0 bg-green-800 opacity-0 hover:opacity-100 hover:scale-105 rounded-xl transition-all duration-300'>
                                                     <h1 className='text-white font-["Courier_Prime"]  h-60 p-3 w-full text-[18px]'>Full-stack EMR platform built solo to solve real scheduling and patient-tracking gaps I've seen working in healthcare. Live scheduling, patient case tracking, and role-based auth modeled on real clinic access.</h1>
                                                     <div className='p-4 flex justify-center items-center mt-5'>
                                                         <p className='text-white font-["Instrument_Serif"]  font-bold italic'>Click to view the project!</p>
