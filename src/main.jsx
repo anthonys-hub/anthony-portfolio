@@ -65,6 +65,7 @@ function AppRun() {
 
     controls.enableZoom = false
     controls.enablePan = false
+    controls.maxPolarAngle = Math.PI / 2 + 0.05
 
     const raycaster = new THREE.Raycaster()
     const mouseClick = new THREE.Vector2()
@@ -118,6 +119,7 @@ function AppRun() {
         controls.enabled = false
         setCameraPoint('transitioning')
 
+
         gsap.to(camera.position, {
           x: 34.856,
           y: 6.701,
@@ -134,7 +136,7 @@ function AppRun() {
           onUpdate: () => camera.lookAt(controls.target)
         })
 
-      } else if (cameraStateRef.current === 'driverSeat' && event.deltaY > 0) {
+      } else if (cameraStateRef.current === 'driverSeat' && event.deltaY > 0 && !panelOpenRef.current) {
         cameraStateRef.current = 'transitioning'
         setCameraPoint('transitioning')
 
