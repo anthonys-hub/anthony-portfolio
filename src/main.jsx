@@ -215,6 +215,14 @@ function AppRun() {
 
     window.addEventListener('wheel', handleWheel)
 
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+    }
+
+    window.addEventListener('resize', handleResize)
+
     const loader = new GLTFLoader()
     const rgbeLoader = new RGBELoader()
 
@@ -373,6 +381,7 @@ function AppRun() {
       window.removeEventListener('click', handleScreenClick)
       cancelAnimationFrame(animationFrameId.current)
       document.body.removeChild(renderer.domElement)
+      window.removeEventListener('resize', handleResize)
     }
 
   }, [])
@@ -391,7 +400,7 @@ function AppRun() {
       )}
       {!isMobile && assetsLoaded >= totalAssets && !panelOpen && cameraPoint !== 'transitioning' && (
         <div className='fixed bottom-8 inset-x-0 flex justify-center pointer-events-none z-40'>
-          <p className='animate-bounce text-white/80 text-sm font-["Courier_Prime"] bg-black/50 px-4 py-2 rounded-full'>
+          <p className='animate-bounce text-white text-sm font-["Courier_Prime"] bg-black/50 px-4 py-2 rounded-full'>
             {cameraPoint === 'orbit' ? 'Scroll up to enter the car ↑' : 'Scroll down to exit ↓'}
           </p>
         </div>
