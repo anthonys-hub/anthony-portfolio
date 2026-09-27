@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { SpotLightHelper } from 'three'
 import gsap from 'gsap'
 import { useState } from 'react'
@@ -29,6 +30,7 @@ function AppRun() {
   const rimMeshRef = useRef(null)
   const dogRef = useRef(null)
   const [isMobile] = useState(() => window.matchMedia('(pointer: coarse)').matches)
+  const [hasViewedScreen, setHasViewedScreen] = useState(false)
 
 
   const [soundOn, setSoundOn] = useState(false)
@@ -79,6 +81,8 @@ function AppRun() {
 
     const scene = new THREE.Scene()
     window.scene = scene
+    scene.fog = new THREE.Fog(0x000000, 40, 110)
+
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     camera.position.set(11.614, 6.919, 3.940)
@@ -104,11 +108,15 @@ function AppRun() {
 
       raycaster.setFromCamera(mouseClick, camera)
 
+
       if (cameraStateRef.current === 'driverSeat' && screenMeshRef.current) {
         const screenHits = raycaster.intersectObject(screenMeshRef.current, true)
+
+
         if (screenHits.length > 0) {
           setPanelOpen(true)
           panelOpenRef.current = true
+          setHasViewedScreen(true)
           return
         }
       }
@@ -223,8 +231,12 @@ function AppRun() {
 
     window.addEventListener('resize', handleResize)
 
-    const loader = new GLTFLoader()
+
     const rgbeLoader = new RGBELoader()
+    const loader = new GLTFLoader()
+    const dracoLoader = new DRACOLoader()
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/')
+    loader.setDRACOLoader(dracoLoader)
 
     const updateProgress = () => {
       const { street, dog } = bytesRef.current
@@ -236,7 +248,7 @@ function AppRun() {
       scene.environment = pmremGenerator.fromEquirectangular(texture).texture
     })
 
-    loader.load('/StreetWebP.glb', (gltf) => {
+    loader.load('/StreetOpt.glb', (gltf) => {
       scene.add(gltf.scene)
 
       gltf.scene.traverse((child) => {
@@ -309,7 +321,7 @@ function AppRun() {
 
     let mixer = null
 
-    loader.load('/DracoOptimized.glb', (gltf) => {
+    loader.load('/DracoOpt.glb', (gltf) => {
       scene.add(gltf.scene)
       dogRef.current = gltf.scene
 
@@ -400,8 +412,12 @@ function AppRun() {
       )}
       {!isMobile && assetsLoaded >= totalAssets && !panelOpen && cameraPoint !== 'transitioning' && (
         <div className='fixed bottom-8 inset-x-0 flex justify-center pointer-events-none z-40'>
-          <p className='animate-bounce text-white text-sm font-["Courier_Prime"] bg-black/50 px-4 py-2 rounded-full'>
-            {cameraPoint === 'orbit' ? 'Scroll up to enter the car ↑' : 'Scroll down to exit ↓'}
+          <p className='animate-bounce text-white text-md font-["Courier_Prime"] bg-black/50 px-4 py-2 rounded-full'>
+            {cameraPoint === 'orbit'
+              ? 'Scroll up to learn about me! ↑'
+              : hasViewedScreen
+                ? 'Scroll down to exit the car ↓'
+                : 'Click the screen for my projects, resume, contact, and more!'}
           </p>
         </div>
       )}
