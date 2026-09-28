@@ -14,8 +14,10 @@ import './index.css'
 import App from './App.jsx'
 import CarPlayUI from './CarPlayUI.jsx'
 import { FaVolumeUp, FaVolumeMute } from 'react-icons/fa'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 function AppRun() {
+
 
   const [progress, setProgress] = useState(0)
   const bytesRef = useRef({ street: { loaded: 0, total: 0 }, dog: { loaded: 0, total: 0 } })
@@ -70,21 +72,53 @@ function AppRun() {
     if (isMobile) return
 
     const renderer = new THREE.WebGLRenderer({ antialias: true })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    window.renderer = renderer
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 0.2
+    renderer.toneMappingExposure = 0.35
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer)
     pmremGenerator.compileEquirectangularShader()
 
     const scene = new THREE.Scene()
     window.scene = scene
-    scene.fog = new THREE.Fog(0x000000, 40, 110)
+    scene.fog = new THREE.FogExp2(0x0a0a1a, 0.01)
 
+    const skyGeo = new THREE.SphereGeometry(400, 32, 15)
+    const skyMat = new THREE.ShaderMaterial({
+      uniforms: {
+        topColor: { value: new THREE.Color(0x000005) },
+        bottomColor: { value: new THREE.Color(0x0a0a1a) },
+        offset: { value: 20 },
+        exponent: { value: 0.8 }
+      },
+      vertexShader: `
+    varying vec3 vWorldPosition;
+    void main() {
+      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+      vWorldPosition = worldPosition.xyz;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+      fragmentShader: `
+    uniform vec3 topColor;
+    uniform vec3 bottomColor;
+    uniform float offset;
+    uniform float exponent;
+    varying vec3 vWorldPosition;
+    void main() {
+      float h = normalize(vWorldPosition + offset).y;
+      gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+    }
+  `,
+      side: THREE.BackSide
+    })
+    const sky = new THREE.Mesh(skyGeo, skyMat)
+    scene.add(sky)
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 500)
     camera.position.set(11.614, 6.919, 3.940)
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.target.set(28.546, 7.179, -15.961)
@@ -245,15 +279,20 @@ function AppRun() {
     }
 
     rgbeLoader.load('/cobblestone_street_night_1k.hdr', (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping
       scene.environment = pmremGenerator.fromEquirectangular(texture).texture
     })
+
 
     loader.load('/StreetOpt.glb', (gltf) => {
       scene.add(gltf.scene)
 
       gltf.scene.traverse((child) => {
-        if (child.type === 'SpotLight' && child.name !== 'Headlight_2_Shine001') {
+        if (child.isMesh && child.name.startsWith('Plane068')) {
+          child.frustumCulled = false
+        }
 
+        if (child.type === 'SpotLight' && child.name !== 'Headlight_2_Shine001') {
           const worldPos = new THREE.Vector3()
           child.getWorldPosition(worldPos)
 
@@ -269,7 +308,7 @@ function AppRun() {
           child.distance = 50
           child.decay = 1
 
-          child.intensity = child.intensity * 20
+          child.intensity = child.intensity * 5
         }
 
         if (child.isLight) {
@@ -278,20 +317,10 @@ function AppRun() {
 
         if (child.name === 'ARm4_interior_etkc_screen_0') {
           screenMeshRef.current = child
-        }
-
-        if (child.name === 'ARm4_interior_etkc_screen_0') {
-          screenMeshRef.current = child
-          child.geometry.computeBoundingBox()
-          screenCenterRef.current = child.geometry.boundingBox.getCenter(new THREE.Vector3())
-        }
-        if (child.name === 'ARm4_interior_etkc_screen_0') {
-          screenMeshRef.current = child
           child.geometry.computeBoundingBox()
           const box = child.geometry.boundingBox
           screenCenterRef.current = box.getCenter(new THREE.Vector3())
 
-          const size = box.getSize(new THREE.Vector3())
           const rimGeometry = child.geometry.clone()
           rimGeometry.translate(-screenCenterRef.current.x, -screenCenterRef.current.y, -screenCenterRef.current.z)
 
@@ -310,6 +339,49 @@ function AppRun() {
           rimMeshRef.current = rimMesh
         }
       })
+
+      const materialGroups = new Map()
+      gltf.scene.updateMatrixWorld(true)
+
+      gltf.scene.traverse((child) => {
+        if (!child.isMesh) return
+        if (child.name.startsWith('Plane068')) return
+        if (child === screenMeshRef.current) return
+        if (child.name.includes('ARm4')) return
+
+        const key = child.material.uuid
+        if (!materialGroups.has(key)) {
+          materialGroups.set(key, { material: child.material, geometries: [] })
+        }
+
+        const geom = child.geometry.clone()
+        geom.applyMatrix4(child.matrixWorld)
+        materialGroups.get(key).geometries.push(geom)
+      })
+
+      const toRemove = []
+      gltf.scene.traverse((child) => {
+        if (!child.isMesh) return
+        if (child.name.startsWith('Plane068')) return
+        if (child === screenMeshRef.current) return
+        if (child.name.includes('ARm4')) return
+        toRemove.push(child)
+      })
+      toRemove.forEach((child) => child.parent.remove(child))
+
+      materialGroups.forEach(({ material, geometries }) => {
+        if (geometries.length < 2) {
+          if (geometries.length === 1) {
+            const mesh = new THREE.Mesh(geometries[0], material)
+            scene.add(mesh)
+          }
+          return
+        }
+        const merged = mergeGeometries(geometries, false)
+        const mergedMesh = new THREE.Mesh(merged, material)
+        scene.add(mergedMesh)
+      })
+
       setAssetsLoaded(prev => prev + 1)
 
     }, (xhr) => {
@@ -318,6 +390,7 @@ function AppRun() {
         updateProgress()
       }
     })
+
 
     let mixer = null
 
@@ -329,7 +402,6 @@ function AppRun() {
       const clip = gltf.animations[0]
       const action = mixer.clipAction(clip)
       action.play()
-
 
       setAssetsLoaded(prev => prev + 1)
 
