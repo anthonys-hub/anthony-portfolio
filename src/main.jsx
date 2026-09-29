@@ -77,20 +77,20 @@ function AppRun() {
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 0.35
+    renderer.toneMappingExposure = 1
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer)
     pmremGenerator.compileEquirectangularShader()
 
     const scene = new THREE.Scene()
     window.scene = scene
-    scene.fog = new THREE.FogExp2(0x0a0a1a, 0.01)
+    scene.fog = new THREE.FogExp2(0x2a3a66, 0.01)
 
     const skyGeo = new THREE.SphereGeometry(400, 32, 15)
     const skyMat = new THREE.ShaderMaterial({
       uniforms: {
-        topColor: { value: new THREE.Color(0x000005) },
-        bottomColor: { value: new THREE.Color(0x0a0a1a) },
+        topColor: { value: new THREE.Color(0x0b1430) },
+        bottomColor: { value: new THREE.Color(0x2a3a66) },
         offset: { value: 20 },
         exponent: { value: 0.8 }
       },
@@ -117,6 +117,26 @@ function AppRun() {
     })
     const sky = new THREE.Mesh(skyGeo, skyMat)
     scene.add(sky)
+    const hemi = new THREE.HemisphereLight(0x4466aa, 0x0a0a1a, 2.5)
+    scene.add(hemi)
+
+    const starCount = 1500
+    const starPositions = new Float32Array(starCount * 3)
+    for (let i = 0; i < starCount; i++) {
+      const theta = Math.random() * Math.PI * 2
+      const phi = Math.acos(Math.random() * 0.9 + 0.1)
+      const r = 380
+      starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta)
+      starPositions[i * 3 + 1] = r * Math.cos(phi)
+      starPositions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta)
+    }
+    const starGeo = new THREE.BufferGeometry()
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3))
+    const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 2, sizeAttenuation: false, fog: false })
+    scene.add(new THREE.Points(starGeo, starMat))
+
+    scene.environment = pmremGenerator.fromScene(scene, 0, 0.1, 1000).texture
+    scene.environmentIntensity = 1.5
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 500)
     camera.position.set(11.614, 6.919, 3.940)
@@ -278,10 +298,7 @@ function AppRun() {
       if (total > 0) setProgress(Math.round(((street.loaded + dog.loaded) / total) * 100))
     }
 
-    rgbeLoader.load('/cobblestone_street_night_1k.hdr', (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping
-      scene.environment = pmremGenerator.fromEquirectangular(texture).texture
-    })
+
 
 
     loader.load('/StreetOpt.glb', (gltf) => {
@@ -347,6 +364,7 @@ function AppRun() {
         if (!child.isMesh) return
         if (child.name.startsWith('Plane068')) return
         if (child === screenMeshRef.current) return
+        if (child.parent === screenMeshRef.current) return
         if (child.name.includes('ARm4')) return
 
         const key = child.material.uuid
@@ -364,6 +382,7 @@ function AppRun() {
         if (!child.isMesh) return
         if (child.name.startsWith('Plane068')) return
         if (child === screenMeshRef.current) return
+        if (child.parent === screenMeshRef.current) return
         if (child.name.includes('ARm4')) return
         toRemove.push(child)
       })
@@ -378,6 +397,10 @@ function AppRun() {
           return
         }
         const merged = mergeGeometries(geometries, false)
+        if (!merged) {
+          geometries.forEach((g) => scene.add(new THREE.Mesh(g, material)))
+          return
+        }
         const mergedMesh = new THREE.Mesh(merged, material)
         scene.add(mergedMesh)
       })
