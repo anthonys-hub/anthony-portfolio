@@ -117,7 +117,7 @@ function AppRun() {
     })
     const sky = new THREE.Mesh(skyGeo, skyMat)
     scene.add(sky)
-    const hemi = new THREE.HemisphereLight(0x4466aa, 0x0a0a1a, 2.5)
+    const hemi = new THREE.HemisphereLight(0x8899bb, 0x0a0a1a, 2.5)
     scene.add(hemi)
 
     const starCount = 1500
@@ -133,9 +133,9 @@ function AppRun() {
     const starGeo = new THREE.BufferGeometry()
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3))
     const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 2, sizeAttenuation: false, fog: false })
-    scene.add(new THREE.Points(starGeo, starMat))
 
     scene.environment = pmremGenerator.fromScene(scene, 0, 0.1, 1000).texture
+    scene.add(new THREE.Points(starGeo, starMat))
     scene.environmentIntensity = 1.5
 
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.05, 500)
@@ -365,7 +365,6 @@ function AppRun() {
         if (child.name.startsWith('Plane068')) return
         if (child === screenMeshRef.current) return
         if (child.parent === screenMeshRef.current) return
-        if (child.name.includes('ARm4')) return
 
         const key = child.material.uuid
         if (!materialGroups.has(key)) {
@@ -375,6 +374,8 @@ function AppRun() {
         const geom = child.geometry.clone()
         geom.applyMatrix4(child.matrixWorld)
         materialGroups.get(key).geometries.push(geom)
+        geom.deleteAttribute('uv1')
+        geom.deleteAttribute('uv2')
       })
 
       const toRemove = []
@@ -383,7 +384,6 @@ function AppRun() {
         if (child.name.startsWith('Plane068')) return
         if (child === screenMeshRef.current) return
         if (child.parent === screenMeshRef.current) return
-        if (child.name.includes('ARm4')) return
         toRemove.push(child)
       })
       toRemove.forEach((child) => child.parent.remove(child))
@@ -399,7 +399,9 @@ function AppRun() {
         const merged = mergeGeometries(geometries, false)
         if (!merged) {
           geometries.forEach((g) => scene.add(new THREE.Mesh(g, material)))
+          console.log('merge failed', material.name, geometries.length)
           return
+
         }
         const mergedMesh = new THREE.Mesh(merged, material)
         scene.add(mergedMesh)
