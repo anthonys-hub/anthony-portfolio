@@ -309,6 +309,14 @@ function AppRun() {
           child.frustumCulled = false
         }
 
+        if (child.isMesh && child.material.name.startsWith('erba')) {
+          child.material.transparent = false
+          child.material.depthWrite = true
+          child.material.alphaTest = 0.5
+          child.material.needsUpdate = true
+          child.material.alphaToCoverage = true
+        }
+
         if (child.type === 'SpotLight' && child.name !== 'Headlight_2_Shine001') {
           const worldPos = new THREE.Vector3()
           child.getWorldPosition(worldPos)
