@@ -414,13 +414,24 @@ function AppRun() {
         scene.add(mergedMesh)
       })
 
+      scene.traverse((o) => {
+        if (o.isMesh) o.frustumCulled = false
+      })
+      renderer.render(scene, camera)
+      scene.traverse((o) => {
+        if (o.isMesh && !o.name.startsWith('Plane068')) o.frustumCulled = true
+      })
+
       setAssetsLoaded(prev => prev + 1)
+
 
     }, (xhr) => {
       if (xhr.lengthComputable) {
         bytesRef.current.street = { loaded: xhr.loaded, total: xhr.total }
         updateProgress()
       }
+
+
     })
 
 
@@ -434,6 +445,7 @@ function AppRun() {
       const clip = gltf.animations[0]
       const action = mixer.clipAction(clip)
       action.play()
+
 
       setAssetsLoaded(prev => prev + 1)
 
