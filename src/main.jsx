@@ -301,7 +301,7 @@ function AppRun() {
 
 
 
-    loader.load('/StreetOpt.glb', (gltf) => {
+    loader.load('/StreetBillboard.glb', (gltf) => {
       scene.add(gltf.scene)
 
       gltf.scene.traverse((child) => {
@@ -399,7 +399,6 @@ function AppRun() {
         const merged = mergeGeometries(geometries, false)
         if (!merged) {
           geometries.forEach((g) => scene.add(new THREE.Mesh(g, material)))
-          console.log('merge failed', material.name, geometries.length)
           return
 
         }
